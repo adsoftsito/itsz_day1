@@ -15,12 +15,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
+    - name: install opencv,  pandas 
+      run: pip install -r requirements.py
     
-    - name: run python program 
+    - name: run linear model 
       run: python linear.py
 
-    - name: list model 
-      run: ls -la linear-model/1
+    - name: run flowers model 
+      run: python flowers.py
+
+    - name: list models 
+      run: ls -la 
       
     - name: docker login
       env:
@@ -32,11 +37,17 @@ jobs:
     - name: Download and run the Docker base image
       run: docker run -d --name serving_base tensorflow/serving
  
-    - name: copy model to the Docker image
+    - name: copy linear model to the Docker image
       run: docker cp ${{secrets.MODEL_NAME}} serving_base:/models/${{secrets.MODEL_NAME}}
 
-    - name: show files in container
+    - name: copy flowers model to the Docker image
+      run: docker cp ${{secrets.MODEL_NAME2}} serving_base:/models/${{secrets.MODEL_NAME2}}
+
+    - name: show linear files in container
       run: docker exec serving_base ls -la models/${{secrets.MODEL_NAME}}/1
+
+    - name: show flower files in container
+      run: docker exec serving_base ls -la models/${{secrets.MODEL_NAME2}}/1
 
     - name: Build the custom Docker image
       run: docker commit --change "ENV MODEL_NAME ${{secrets.MODEL_NAME}}" serving_base ${{secrets.DOCKER_USER}}/tensorflow-${{secrets.MODEL_NAME}}:${{ github.sha }}
